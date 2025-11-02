@@ -1,0 +1,16 @@
+{
+  "jahr": 2025,
+  "datum": "2025-09-29",
+  "startZeit": "2025-09-29T11:00:00Z",
+  "gebuehren": [
+    {
+      "name": "Voranmeldung",
+      "betrag": 2.50
+    },
+    {
+      "name": "Nachmeldung",
+      "betrag": 3.0
+    }
+  ],
+  "updatedAt": "2025-10-31T12:00:00Z"
+}

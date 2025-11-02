@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter App",
+            "type": "dart",
+            "request": "launch",
+            "program": "flutter_app/lib/main.dart"
+        },
+        {
+            "name": "Go Server",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/go_server/main.go"
+        }
+    ]
+}

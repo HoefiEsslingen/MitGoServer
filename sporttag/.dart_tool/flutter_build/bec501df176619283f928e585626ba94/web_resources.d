@@ -1,0 +1,1 @@
+ build/web/manifest.json:  /Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/web/index.html /Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/web/manifest.json

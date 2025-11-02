@@ -1,0 +1,144 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+)
+
+// Struktur für das eingehende Flutter-JSON
+type Resultat struct {
+	KindID    string  `json:"kindID"`
+	StationID string  `json:"stationID"`
+	Punkte    float64 `json:"punkte"`
+	Version   int     `json:"version"` // für optimistic locking
+}
+
+// Speicher für Locks (verhindert Doppelzugriffe)
+var lockMap = sync.Map{}
+
+// POST /api/resultat
+func resultatHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var res Resultat
+	if err := json.NewDecoder(r.Body).Decode(&res); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	key := fmt.Sprintf("%s-%s", res.KindID, res.StationID)
+	mutex, _ := lockMap.LoadOrStore(key, &sync.Mutex{})
+	mu := mutex.(*sync.Mutex)
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Simuliertes Optimistic Locking: Hole bestehenden Datensatz
+	existing, version, err := getExistingResult(res.KindID, res.StationID)
+	if err != nil && err != io.EOF {
+		http.Error(w, "Fehler beim Lesen: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Prüfe Version
+	if existing && res.Version != version {
+		http.Error(w, "Version Conflict – Datensatz wurde zwischenzeitlich geändert", http.StatusConflict)
+		return
+	}
+
+	// Speichere atomar
+	if err := saveResultatToBack4App(res, version+1); err != nil {
+		http.Error(w, "Fehler beim Speichern: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"status":"ok","version":%d}`, version+1)
+}
+
+// Lese ggf. bestehendes Resultat (zur Versionskontrolle)
+func getExistingResult(kindID, stationID string) (bool, int, error) {
+	url := fmt.Sprintf("%s/Resultat?where={\"kindID\":\"%s\",\"stationID\":\"%s\"}", os.Getenv("BACK4APP_URL"), kindID, stationID)
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("X-Parse-Application-Id", os.Getenv("BACK4APP_APP_ID"))
+	req.Header.Add("X-Parse-REST-API-Key", os.Getenv("BACK4APP_REST_KEY"))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, 0, err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Results []struct {
+			Version int `json:"version"`
+		} `json:"results"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return false, 0, err
+	}
+
+	if len(result.Results) == 0 {
+		return false, 0, nil
+	}
+	return true, result.Results[0].Version, nil
+}
+
+// Schreibe Resultat atomar in Back4App
+func saveResultatToBack4App(res Resultat, newVersion int) error {
+	payload := map[string]interface{}{
+		"kindID":    res.KindID,
+		"stationID": res.StationID,
+		"punkte":    res.Punkte,
+		"version":   newVersion,
+		"erfassungsZeit": map[string]interface{}{
+			"__type": "Date",
+			"iso":    time.Now().UTC().Format(time.RFC3339),
+		},
+	}
+
+	jsonData, _ := json.Marshal(payload)
+
+	req, _ := http.NewRequest("POST", os.Getenv("BACK4APP_URL")+"/Resultat", bytes.NewBuffer(jsonData))
+	req.Header.Add("X-Parse-Application-Id", os.Getenv("BACK4APP_APP_ID"))
+	req.Header.Add("X-Parse-REST-API-Key", os.Getenv("BACK4APP_REST_KEY"))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("Back4App-Fehler: %s", string(body))
+	}
+
+	return nil
+}
+
+// Hauptfunktion
+func main() {
+	flutterDir := filepath.Join("..", "flutter_app", "build", "web")
+	fs := http.FileServer(http.Dir(flutterDir))
+	http.Handle("/", fs)
+
+	http.HandleFunc("/api/resultat", resultatHandler)
+
+	fmt.Println("Server läuft auf http://localhost:8080 ...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
