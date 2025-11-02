@@ -2,6 +2,11 @@
 
 // import 'dart:convert';
 
+// Beispiel-API-URL, 
+// muss für die Produktion angepasst werden
+// z.B. 'https://<github>' oder der Server von der TSG-Seite
+final String apiUrl = 'http://localhost:8080';
+
 class Gebuehr {
   final String name;
   final double betrag;

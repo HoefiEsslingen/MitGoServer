@@ -7,7 +7,7 @@ import 'package:logger/logger.dart';
 import '../daten_modelle/event_konfiguration.dart';
 
 class KonfigurationsService extends ChangeNotifier {
-  final String apiBase; // e.g. http://localhost:8080
+  final String apiBase; 
   EventKonfiguration? _config;
   bool _loading = false;
   String? lastError;

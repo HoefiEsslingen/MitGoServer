@@ -1,6 +1,0 @@
-# config.properties - Kommentare beginnen mit #
-jahr=2025
-datum=2025-11-01
-startZeit=2025-11-01T08:00:00Z
-gebuehren=Voranmeldung:2.50;Nachmeldung:3.00
-updatedAt=2025-10-31T13:29:17Z

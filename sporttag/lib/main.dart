@@ -1,39 +1,22 @@
 import 'package:flutter/material.dart';
-// import 'package:sporttag/daten_modelle/event_konfiguration.dart';
-// import 'services/konfiguration_laden.dart';
 import 'package:provider/provider.dart';
+
+import 'daten_modelle/event_konfiguration.dart';
 import 'services/konfigurations_service.dart';
 import 'src/anwendungen/steuerungs_seite.dart';
+// import 'src/anwendungen/check_voranmeldung.dart';
 import 'src/master_scaffold.dart';
 import 'src/theme/app_theme.dart';
-// import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
-// import 'src/anmelden_vorher.dart';
-// import 'src/danke_schoen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // // Lade Config synchron vor runApp
-  // late final EventKonfiguration konfiguration;
-  // try {
-  //   konfiguration = await loadConfigFromAssets();
-  // } catch (e) {
-  //   // Fallback: fallback-config bauen oder App mit Fehler starten
-  //   // config = EventKonfiguration(
-  //   //   jahr: DateTime.now().year,
-  //   //   datum: '',
-  //   //   startZeit: DateTime.now(),
-  //   //   gebuehren: [],
-  //   //   updatedAt: DateTime.now(),
-  //   // );
-  //   // optional: loggen
-  //   debugPrint('Fehler beim Laden der config.json: $e');
-  // }
-
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(
-        create: (_) => KonfigurationsService(apiBase: 'http://localhost:8080'),
+        // apiBase localhost für die Entwicklung
+        // apiBase 'https://<github>' oder ggf. der Server von der TSG-Seite für Produktion
+        create: (_) => KonfigurationsService(apiBase: apiUrl),
       ),
     ],
     child: const MainApp(),
@@ -50,6 +33,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // The app controls the lower heading via this ValueNotifier.
     final ValueNotifier<String> seitenUeberschrift =
+//        ValueNotifier<String>('Voranmeldungs-Test');
         ValueNotifier<String>('Wettkampf-Büro');
 
     // Wir stellen die Config als readonly globales Objekt bereit.
@@ -57,6 +41,7 @@ class MainApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         home: MasterScaffold(
           headingListenable: seitenUeberschrift,
+//          body: CheckVoranmeldungPage(context),//(aendereUeberschrift: seitenUeberschrift),
           body: SteuerungsSeite(aendereUeberschrift: seitenUeberschrift),
         ),
         debugShowCheckedModeBanner: false,

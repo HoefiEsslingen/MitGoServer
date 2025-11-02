@@ -53,6 +53,16 @@ var (
 	parseServerURL = getEnv("PARSE_SERVER_URL", getEnv("BACK4APP_SERVER_URL", "https://parseapi.back4app.com"))
 )
 
+// Liefert aktuelle Serverzeit im RFC3339-Format
+func handleNow(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	now := time.Now() // oder time.Now().UTC() für absolute Serverzeit
+	json.NewEncoder(w).Encode(map[string]string{
+		"now": now.Format(time.RFC3339),
+	})
+}
+
 // Methoden zum Laden oder Initialisieren der Konfiguration
 func getEnv(key, fallback string) string {
 	v := os.Getenv(key)
@@ -480,6 +490,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	// API endpoints
+	// liefert aktuelle Serverzeit
+	mux.HandleFunc("/now", handleNow)
+
 	mux.HandleFunc("/api/access-status", accessStatusHandler)
 	mux.HandleFunc("/api/auth", authHandler)
 	mux.HandleFunc("/api/config", configHandler)
