@@ -1,7 +1,7 @@
 {
-  "jahr": 2026,
-  "datum": "2026-09-29",
-  "startZeit": "2026-09-29T11:00:00Z",
+  "jahr": 2025,
+  "datum": "2025-09-29",
+  "startZeit": "2025-09-29T11:00:00Z",
   "gebuehren": [
     {
       "name": "Voranmeldung",
@@ -12,5 +12,5 @@
       "betrag": 3.0
     }
   ],
-  "updatedAt": "2025-10-31T12:00:00Z"
+  "updatedAt": "2025-11-23T12:00:00Z"
 }

@@ -32,12 +32,12 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
   @override
   void initState() {
     super.initState();
-    _checkVoranmeldungStatus();
+    //_checkVoranmeldungStatus();
   }
 
   Future<void> _checkVoranmeldungStatus() async {
     try {
-      final svc = context.watch<KonfigurationsService>();
+      final svc = context.read<KonfigurationsService>();
       final konfiguration = svc.config;
       final String? datumString = konfiguration?.datum;
       if (datumString == null) {
@@ -100,3 +100,108 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
     );
   }
 }
+/***** Alternative Implementation *****
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../services/konfigurations_service.dart';
+import '../../services/server_zeit_abfragen.dart';
+import '../theme/app_theme.dart';
+
+// dieselbe apiUrl wie in main.dart
+const String apiUrl = 'http://localhost:8080';
+
+class CheckVoranmeldungPage extends StatefulWidget {
+  const CheckVoranmeldungPage({super.key});
+
+  @override
+  State<CheckVoranmeldungPage> createState() => _CheckVoranmeldungPageState();
+}
+
+class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
+  Future<String>? _checkFuture;
+
+  Future<String> _checkVoranmeldungStatus() async {
+    final svc = context.read<KonfigurationsService>();
+    final konfiguration = svc.config;
+    final String? datumString = konfiguration?.datum;
+
+    if (datumString == null) {
+      return "Fehler: datumString ist null\n"
+          "Konfiguration geladen? ${svc.config != null}\n"
+          "Konfiguration: ${svc.config}\n"
+          "Datum-Feld: ${svc.config?.datum}";
+    }
+
+    final DateTime veranstaltungsDatum = DateTime.parse(datumString);
+
+    final DateTime cutoff = DateTime(
+      veranstaltungsDatum.year,
+      veranstaltungsDatum.month,
+      veranstaltungsDatum.day - 1,
+      18,
+      0,
+    );
+
+    final serverTimeService = ServerTimeService(baseUrl: apiUrl);
+    final DateTime serverNow = await serverTimeService.fetchServerTime();
+
+    final bool istNachSchluss = serverNow.isAfter(cutoff);
+
+    return istNachSchluss
+        ? "Voranmeldung ist gesperrt"
+        : "Voranmeldung ist möglich, da vor 18:00 Uhr am Vortag";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final svc = context.watch<KonfigurationsService>();
+
+    if (svc.loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (svc.config == null) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            "Konfiguration konnte nicht geladen werden.",
+            textAlign: TextAlign.center,
+            style: AppTheme.lightTheme.textTheme.titleLarge,
+          ),
+        ),
+      );
+    }
+
+    _checkFuture ??= _checkVoranmeldungStatus();
+
+    return Scaffold(
+      body: Center(
+        child: FutureBuilder<String>(
+          future: _checkFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+            if (snapshot.hasError) {
+              return Text(
+                "Fehler in _checkVoranmeldungStatus(): ${snapshot.error}",
+                textAlign: TextAlign.center,
+                style: AppTheme.lightTheme.textTheme.titleLarge,
+              );
+            }
+            return Text(
+              snapshot.data ?? "Unbekannter Status",
+              textAlign: TextAlign.center,
+              style: AppTheme.lightTheme.textTheme.titleLarge,
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+ */
