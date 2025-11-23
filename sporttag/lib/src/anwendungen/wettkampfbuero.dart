@@ -68,7 +68,7 @@ class WettkampfbueroState extends State<Wettkampfbuero> {
 
   @override
   Widget build(BuildContext context) {
-    final svc = context.watch<KonfigurationsService>();
+    final svc = context.read<KonfigurationsService>();
     final konfiguration = svc.config;
     final gebuehrenVoranmeldung = konfiguration?.gebuehren.first.betrag.toStringAsFixed(2);
     final gebuehrenNachmeldung = konfiguration?.gebuehren.last.betrag.toStringAsFixed(2);

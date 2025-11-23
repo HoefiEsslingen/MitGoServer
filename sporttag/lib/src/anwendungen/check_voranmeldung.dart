@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import '../../daten_modelle/event_konfiguration.dart';
 import '../../services/konfigurations_service.dart';
 import '../../services/server_zeit_abfragen.dart';
+import '../../services/status_voranmeldung.dart';
 import '../theme/app_theme.dart';
+import 'anmelden_vorher.dart';
+import 'wettkampfbuero.dart';
 
 class CheckVoranmeldungPage extends StatefulWidget {
   const CheckVoranmeldungPage(BuildContext context, {super.key});
@@ -21,81 +24,88 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final svc = context.watch<KonfigurationsService>();
+    if (_statusChecked) return;
 
-    if (!_statusChecked && svc.config != null && !svc.loading) {
+    final konfigSvc = context.read<KonfigurationsService>();
+
+
+    // Warten, bis Config geladen ist
+    if (!konfigSvc.loading && konfigSvc.config != null) {
       _statusChecked = true;
-      _checkVoranmeldungStatus();
+      _startePruefungUndNavigation();
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    //_checkVoranmeldungStatus();
-  }
-
-  Future<void> _checkVoranmeldungStatus() async {
+  Future<void> _startePruefungUndNavigation() async {
     try {
-      final svc = context.read<KonfigurationsService>();
-      final konfiguration = svc.config;
-      final String? datumString = konfiguration?.datum;
-      if (datumString == null) {
-        return setState(() {
-          _message =
-              "Fehler in _checkVoranmeldungStatus(): datumString ist null" +
-                  "\n" +
-                  "Konfiguration geladen? ${svc.config != null}" +
-                  "\n" +
-                  "Konfiguration: ${svc.config}" +
-                  "\n" +
-                  "Datum-Feld: ${svc.config?.datum}";
-        });
-      }
-      final DateTime veranstaltungsDatum = DateTime.parse(datumString); //!);
+      final konfigSvc = context.read<KonfigurationsService>();
+      final serverTimeService = ServerTimeService(baseUrl: apiUrl);
 
-      // 18:00 Uhr des Vortags berechnen
-      final DateTime cutoff = DateTime(
-        veranstaltungsDatum.year,
-        veranstaltungsDatum.month,
-        veranstaltungsDatum.day - 1,
-        18,
-        0,
+      final voranmeldungService = VoranmeldungService(
+        konfigSvc: konfigSvc,
+        serverTimeService: serverTimeService,
       );
 
-      // 🕒 Aktuelle Serverzeit abrufen
-      final serverTimeService = ServerTimeService(baseUrl: apiUrl);
-      final DateTime serverNow = await serverTimeService.fetchServerTime();
+      final ergebnis = await voranmeldungService.pruefeVoranmeldung();
 
-      // Vergleich
-      final bool istNachSchluss = serverNow.isAfter(cutoff);
+    // Je nach Status navigieren:
+      switch (ergebnis.status) {
+        case VoranmeldungStatus.voranmeldungMoeglich:
+          // z.B. auf Anmelde-Page
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const AnmeldenVorher(), // deine Zielseite
+            ),
+          );
+          break;
 
-      setState(() {
-        _message = istNachSchluss
-            ? "Voranmeldung ist gesperrt"
-            : "Voranmeldung ist möglich, da vor 18:00 Uhr am Vortag";
-      });
+        case VoranmeldungStatus.voranmeldungGesperrt:
+          // z.B. auf Info-Page „gesperrt“
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const Wettkampfbuero()
+            ),
+          );
+          break;
+
+        case VoranmeldungStatus.fehler:
+          // Fehler nur anzeigen
+          if (!mounted) return;
+          setState(() {
+            _message = ergebnis.meldung ?? "Unbekannter Fehler";
+          });
+          break;
+      }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _message = "Fehler in _checkVoranmeldungStatus(): $e";
+        _message = "Fehler in _startePruefungUndNavigation(): $e";
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     final svc = context.watch<KonfigurationsService>();
+
     return Scaffold(
       body: Center(
         child: svc.loading
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : (svc.config == null)
-                ? Text("Konfiguration konnte nicht geladen werden.",
+                ? Text(
+                    "Konfiguration konnte nicht geladen werden.",
                     textAlign: TextAlign.center,
-                    style: AppTheme.lightTheme.textTheme.titleLarge)
-                : Text(_message,
+                    style: AppTheme.lightTheme.textTheme.titleLarge,
+                  )
+                : Text(
+                    _message,
                     textAlign: TextAlign.center,
-                    style: AppTheme.lightTheme.textTheme.titleLarge),
+                    style: AppTheme.lightTheme.textTheme.titleLarge,
+                  ),
       ),
     );
   }
