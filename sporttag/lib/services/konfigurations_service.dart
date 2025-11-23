@@ -19,7 +19,7 @@ class KonfigurationsService extends ChangeNotifier {
   // the server. We don't await the async call here; loadFromServer will
   // notify listeners when it finishes.
   KonfigurationsService({required this.apiBase}) {
-    loadFromServer();
+    //loadFromServer();
   }
 
   Future<void> loadFromServer() async {

@@ -7,7 +7,7 @@ class ServerTimeService {
   final String baseUrl;
 
   /// Standardmäßig wird 'http://localhost:8080' verwendet.
-  ServerTimeService({required this.baseUrl});
+  ServerTimeService({this.baseUrl = 'http://localhost:8080'});
 
   /// Ruft die aktuelle Serverzeit ab und gibt sie als DateTime zurück.
   Future<DateTime> fetchServerTime() async {

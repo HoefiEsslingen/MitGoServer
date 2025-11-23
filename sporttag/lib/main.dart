@@ -3,21 +3,23 @@ import 'package:provider/provider.dart';
 
 import 'daten_modelle/event_konfiguration.dart';
 import 'services/konfigurations_service.dart';
-import 'src/anwendungen/steuerungs_seite.dart';
-// import 'src/anwendungen/check_voranmeldung.dart';
+import 'src/anwendungen/check_voranmeldung.dart';
 import 'src/master_scaffold.dart';
 import 'src/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(
+  // Konfiguration wird jetzt synchron geladen, bevor die App startet.
         // apiBase localhost für die Entwicklung
         // apiBase 'https://<github>' oder ggf. der Server von der TSG-Seite für Produktion
-        create: (_) => KonfigurationsService(apiBase: apiUrl),
-      ),
+  final svc = KonfigurationsService(apiBase: apiUrl);
+  await svc.loadFromServer();  // ⬅️ jetzt wird wirklich gewartet
+
+  runApp(
+    MultiProvider(
+    providers: [
+      ChangeNotifierProvider.value(value: svc),
     ],
     child: const MainApp(),
   ));
@@ -41,8 +43,8 @@ class MainApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         home: MasterScaffold(
           headingListenable: seitenUeberschrift,
-//          body: CheckVoranmeldungPage(context),//(aendereUeberschrift: seitenUeberschrift),
-          body: SteuerungsSeite(aendereUeberschrift: seitenUeberschrift),
+          body: CheckVoranmeldungPage(context, ),//(aendereUeberschrift: seitenUeberschrift),
+//          body: SteuerungsSeite(aendereUeberschrift: seitenUeberschrift),
         ),
         debugShowCheckedModeBanner: false,
       );

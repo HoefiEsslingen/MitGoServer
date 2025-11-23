@@ -33,8 +33,13 @@ cd ..
 
 echo "✅ Build abgeschlossen!"
 echo "
-Deployment-Anweisungen:
+Deployment-Anweisungen, falls ein externer Server verwendet wird:
 1. Kopiere den Inhalt des 'go_server' Verzeichnisses auf deinen Server
 2. Führe './server' auf deinem Server aus
 3. Die Anwendung ist nun verfügbar unter http://[server-ip]:8080
+
+Für den lokalen Einsatz:
+1. Wechsle in das 'go_server' Verzeichnis
+2. Führe './server' aus
+3. Öffne deinen Browser und gehe zu http://localhost:8080
 "

@@ -15,6 +15,19 @@ class CheckVoranmeldungPage extends StatefulWidget {
 
 class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
   String _message = "Lade Daten...";
+  bool _statusChecked = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final svc = context.watch<KonfigurationsService>();
+
+    if (!_statusChecked && svc.config != null && !svc.loading) {
+      _statusChecked = true;
+      _checkVoranmeldungStatus();
+    }
+  }
 
   @override
   void initState() {
@@ -27,7 +40,19 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
       final svc = context.watch<KonfigurationsService>();
       final konfiguration = svc.config;
       final String? datumString = konfiguration?.datum;
-      final DateTime veranstaltungsDatum = DateTime.parse(datumString!);
+      if (datumString == null) {
+        return setState(() {
+          _message =
+              "Fehler in _checkVoranmeldungStatus(): datumString ist null" +
+                  "\n" +
+                  "Konfiguration geladen? ${svc.config != null}" +
+                  "\n" +
+                  "Konfiguration: ${svc.config}" +
+                  "\n" +
+                  "Datum-Feld: ${svc.config?.datum}";
+        });
+      }
+      final DateTime veranstaltungsDatum = DateTime.parse(datumString); //!);
 
       // 18:00 Uhr des Vortags berechnen
       final DateTime cutoff = DateTime(
@@ -52,20 +77,25 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
       });
     } catch (e) {
       setState(() {
-        _message = "Fehler: $e";
+        _message = "Fehler in _checkVoranmeldungStatus(): $e";
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // final svc = context.watch<KonfigurationsService>();
-    // final konfiguration = svc.config;
+    final svc = context.watch<KonfigurationsService>();
     return Scaffold(
       body: Center(
-        child: Text(_message,
-            textAlign: TextAlign.center,
-            style: AppTheme.lightTheme.textTheme.titleLarge),
+        child: svc.loading
+            ? CircularProgressIndicator()
+            : (svc.config == null)
+                ? Text("Konfiguration konnte nicht geladen werden.",
+                    textAlign: TextAlign.center,
+                    style: AppTheme.lightTheme.textTheme.titleLarge)
+                : Text(_message,
+                    textAlign: TextAlign.center,
+                    style: AppTheme.lightTheme.textTheme.titleLarge),
       ),
     );
   }
