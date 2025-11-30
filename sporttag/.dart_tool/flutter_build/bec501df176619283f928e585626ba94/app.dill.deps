@@ -421,7 +421,9 @@ file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/.dart_tool/f
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/.dart_tool/flutter_build/bec501df176619283f928e585626ba94/web_plugin_registrant.dart
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/.dart_tool/package_config.json
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/daten_modelle/event_konfiguration.dart
+file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/daten_modelle/kind.dart
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/main.dart
+file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/services/kind_repository.dart
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/services/konfigurations_service.dart
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/services/server_zeit_abfragen.dart
 file:///Users/gerold-hoeferlin/Desktop/Flutter/MitGoServer/sporttag/lib/services/status_voranmeldung.dart

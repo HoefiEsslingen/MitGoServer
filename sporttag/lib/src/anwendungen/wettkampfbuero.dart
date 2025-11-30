@@ -73,7 +73,6 @@ class WettkampfbueroState extends State<Wettkampfbuero> {
     final gebuehrenVoranmeldung = konfiguration?.gebuehren.first.betrag.toStringAsFixed(2);
     final gebuehrenNachmeldung = konfiguration?.gebuehren.last.betrag.toStringAsFixed(2);
     return Scaffold(
-//      appBar: MeineAppBar(titel: 'Wettkampf-Büro'),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
@@ -112,7 +111,6 @@ class WettkampfbueroState extends State<Wettkampfbuero> {
                                           .map((g) =>
                                               "  ${g.name}: € ${g.betrag.toStringAsFixed(2)}")
                                           .join('\n'))
-//  textAlign: TextAlign.center,
                           ),
                     ],
                   ),

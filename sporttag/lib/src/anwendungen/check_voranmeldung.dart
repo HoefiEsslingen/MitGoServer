@@ -5,6 +5,7 @@ import '../../daten_modelle/event_konfiguration.dart';
 import '../../services/konfigurations_service.dart';
 import '../../services/server_zeit_abfragen.dart';
 import '../../services/status_voranmeldung.dart';
+import '../master_scaffold.dart';
 import '../theme/app_theme.dart';
 import 'anmelden_vorher.dart';
 import 'wettkampfbuero.dart';
@@ -28,7 +29,6 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
 
     final konfigSvc = context.read<KonfigurationsService>();
 
-
     // Warten, bis Config geladen ist
     if (!konfigSvc.loading && konfigSvc.config != null) {
       _statusChecked = true;
@@ -48,14 +48,18 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
 
       final ergebnis = await voranmeldungService.pruefeVoranmeldung();
 
-    // Je nach Status navigieren:
+      // Je nach Status navigieren:
       switch (ergebnis.status) {
         case VoranmeldungStatus.voranmeldungMoeglich:
           // z.B. auf Anmelde-Page
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (_) => const AnmeldenVorher(), // deine Zielseite
+              builder: (_) => MasterScaffold(
+                headingListenable:
+                    ValueNotifier<String>('Vorab-Anmeldung Sporttag'),
+                body: AnmeldenVorher(), // deine Zielseite
+              ),
             ),
           );
           break;
@@ -65,7 +69,11 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (_) => const Wettkampfbuero()
+              builder: (_) => MasterScaffold(
+                headingListenable:
+                   ValueNotifier<String>('Wettkampf-Büro'),
+                body: Wettkampfbuero(),
+              ),
             ),
           );
           break;
@@ -85,7 +93,6 @@ class _CheckVoranmeldungPageState extends State<CheckVoranmeldungPage> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
