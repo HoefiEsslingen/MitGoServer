@@ -41,7 +41,7 @@ class AnmeldenVorherState extends State<AnmeldenVorher> {
     // wird die Liste der zulässigen Jahrgänge erstellt.
     int currentYear = DateTime.now().year;
     int maxAlter = 14; // Maximales Alter für die Anmeldung
-    int minAlter = 3; // Minimales Alter für die Anmeldung
+    int minAlter = 4; // Minimales Alter für die Anmeldung
     _jahrgangListe = [];
     for (int i = minAlter; i <= maxAlter; i++) {
       _jahrgangListe.add(currentYear - i);
@@ -127,7 +127,7 @@ class AnmeldenVorherState extends State<AnmeldenVorher> {
                     const SizedBox(height: 20),
                     // Auswahl-Menü für das Geschlecht
                     DropdownButtonFormField<String>(
-                      value: _geschlecht,
+                      initialValue: _geschlecht,
                       onChanged: (newValue) =>
                           setState(() => _geschlecht = newValue!),
                       items: [
@@ -145,7 +145,7 @@ class AnmeldenVorherState extends State<AnmeldenVorher> {
                     const SizedBox(height: 20),
                     // Auswahl-Menü für den Jahrgang
                     DropdownButtonFormField<int>(
-                      value: _jahrgang,
+                      initialValue: _jahrgang,
                       onChanged: (newValue) =>
                           setState(() => _jahrgang = newValue!),
                       items: [
