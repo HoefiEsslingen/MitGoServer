@@ -211,24 +211,7 @@ class AnmeldenVorherState extends State<AnmeldenVorher> {
           ),
         ));
   }
-/*
-  Future<void> doSaveData() async {
-    Kind neuAngemeldet = kindRepository.erstelleKind(
-      vorname: _vorName.text.trim(),
-      nachname: _nachName.text.trim(),
-      jahrgang: '$_jahrgang',
-      geschlecht: _geschlecht,
-      erreichtePunkte: 0,
-      bezahlt: false,
-      riegenNummer: 0, // Riegen-Nummer wird später gesetzt
-    );
-    if(await kindRepository.erstelleKind(kind: neuAngemeldet)) {
-      showSuccess();
-    } else {
-      showError("Die Anmeldung Ihres Kindes war nicht erfolgreich. Bitte versuchen Sie es später erneut.");
-    }
-  }
-*/
+
   void showSuccess() {
     showDialog(
       context: context,
@@ -287,3 +270,22 @@ class AnmeldenVorherState extends State<AnmeldenVorher> {
     _nachName.text = "";
   }
 }
+
+/*
+  Future<void> doSaveData() async {
+    Kind neuAngemeldet = kindRepository.erstelleKind(
+      vorname: _vorName.text.trim(),
+      nachname: _nachName.text.trim(),
+      jahrgang: '$_jahrgang',
+      geschlecht: _geschlecht,
+      erreichtePunkte: 0,
+      bezahlt: false,
+      riegenNummer: 0, // Riegen-Nummer wird später gesetzt
+    );
+    if(await kindRepository.erstelleKind(kind: neuAngemeldet)) {
+      showSuccess();
+    } else {
+      showError("Die Anmeldung Ihres Kindes war nicht erfolgreich. Bitte versuchen Sie es später erneut.");
+    }
+  }
+*/

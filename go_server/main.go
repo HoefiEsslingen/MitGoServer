@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"go_server/modelle"
 )
 
 // Config file location
@@ -27,21 +29,21 @@ const configFile = "config.json"
 // Simple admin token (in production use env var or a proper auth mechanism)
 var adminToken = getEnv("ADMIN_TOKEN", "my-secret-admin-token")
 
-type Gebuehren struct {
-	Name   string  `json:"name"`
-	Amount float64 `json:"betrag"`
-}
+// type Gebuehren struct {
+// 	Name   string  `json:"name"`
+// 	Amount float64 `json:"betrag"`
+// }
 
-type EventKonfiguration struct {
-	Year         int         `json:"jahr"`
-	Date         string      `json:"datum"`     // ISO date: YYYY-MM-DD
-	StartTime    string      `json:"startZeit"` // ISO datetime: YYYY-MM-DDTHH:MM:SS
-	DieGebuehren []Gebuehren `json:"gebuehren"`
-	UpdatedAt    string      `json:"updatedAt,omitempty"`
-}
+// type EventKonfiguration struct {
+// 	Year         int         `json:"jahr"`
+// 	Date         string      `json:"datum"`     // ISO date: YYYY-MM-DD
+// 	StartTime    string      `json:"startZeit"` // ISO datetime: YYYY-MM-DDTHH:MM:SS
+// 	DieGebuehren []Gebuehren `json:"gebuehren"`
+// 	UpdatedAt    string      `json:"updatedAt,omitempty"`
+// }
 
 var (
-	cfg   EventKonfiguration
+	cfg   modelle.EventKonfiguration
 	mutex sync.RWMutex
 	// simple in-memory token store: token -> expiry
 	tokenStore   = map[string]time.Time{}
@@ -75,11 +77,11 @@ func getEnv(key, fallback string) string {
 func loadOrInitConfig() error {
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		// create default
-		cfg = EventKonfiguration{
+		cfg = modelle.EventKonfiguration{
 			Year:      2025,
 			Date:      "2025-11-01",
 			StartTime: "2025-11-01T08:00:00Z",
-			DieGebuehren: []Gebuehren{
+			DieGebuehren: []modelle.Gebuehren{
 				{Name: "Voranmeldung", Amount: 12.0},
 				{Name: "Nachmeldung", Amount: 18.0},
 			},
@@ -95,7 +97,7 @@ func loadOrInitConfig() error {
 	return json.Unmarshal(b, &cfg)
 }
 
-func saveConfigToFile(c *EventKonfiguration) error {
+func saveConfigToFile(c *modelle.EventKonfiguration) error {
 	b, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
@@ -131,7 +133,7 @@ func handlePutConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updated EventKonfiguration
+	var updated modelle.EventKonfiguration
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&updated); err != nil {
@@ -159,7 +161,7 @@ func handlePutConfig(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, cfg)
 }
 
-func validateConfig(c *EventKonfiguration) error {
+func validateConfig(c *modelle.EventKonfiguration) error {
 	if c.Year < 2000 || c.Year > 2100 {
 		return errors.New("year out of range")
 	}
